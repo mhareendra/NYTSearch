@@ -15,4 +15,5 @@
     <string name="search_mainmenu_option">Search</string>
     <string name="settings_mainmenu_option">Settings</string>
     <string name="loading_menu_item">Loading...</string>
+    <string name="default_query">news</string>
 </resources>

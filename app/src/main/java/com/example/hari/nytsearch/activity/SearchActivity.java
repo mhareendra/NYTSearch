@@ -1,29 +1,37 @@
 package com.example.hari.nytsearch.activity;
 
+import android.annotation.TargetApi;
+import android.content.Context;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
+import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.AdapterView;
-import android.widget.GridView;
 import android.widget.ProgressBar;
+import android.widget.Toast;
 
 import com.example.hari.nytsearch.R;
-import com.example.hari.nytsearch.adapter.ArticlesArrayAdapter;
+import com.example.hari.nytsearch.adapter.ArticlesAdapter;
 import com.example.hari.nytsearch.fragment.FilterSettingsFragment;
+import com.example.hari.nytsearch.helper.ItemClickSupport;
 import com.example.hari.nytsearch.model.Doc;
 import com.example.hari.nytsearch.model.SearchResult;
 import com.example.hari.nytsearch.model.Settings;
 import com.example.hari.nytsearch.service.ServiceInterface;
 
+import java.io.IOException;
 import java.util.ArrayList;
 
 import butterknife.BindView;
@@ -38,50 +46,85 @@ public class SearchActivity extends AppCompatActivity
     implements FilterSettingsFragment.FilterSettingsFragmentListener
 {
 
-    @BindView(R.id.gvResults)
-    GridView gvResults;
-
-
     @BindView(R.id.toolbar)
     Toolbar toolbar;
 
-    ArticlesArrayAdapter adapter;
+    @BindView(R.id.rvArticles)
+    RecyclerView rvArticles;
+
+    @BindView(R.id.swipeContainer)
+    SwipeRefreshLayout swipeContainer;
+
+    ArticlesAdapter adapter;
     SearchResult searchResult;
     ArrayList<Doc> docs;
 
-
-
+    @TargetApi(Build.VERSION_CODES.M)
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search);
         ButterKnife.bind(this);
         docs = new ArrayList<>();
-        adapter = new ArticlesArrayAdapter(this, docs);
-        gvResults.setAdapter(adapter);
 
-        gvResults.setOnScrollListener(new EndlessScrollListener() {
+        adapter = new ArticlesAdapter(this, docs);
+
+        settings = new Settings();
+        invalidateOptionsMenu();
+        setSupportActionBar(toolbar);
+        setupRvArticles();
+        setupSwipeContainer();
+
+        query = getString(R.string.default_query);
+        startSearch();
+
+    }
+
+    private void setupRvArticles()
+    {
+        rvArticles.setAdapter(adapter);
+
+        StaggeredGridLayoutManager gridLayoutManager =
+                new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
+
+        rvArticles.setLayoutManager(gridLayoutManager);
+
+        rvArticles.addOnScrollListener(new EndlessRecyclerViewScrollListener(gridLayoutManager) {
             @Override
-            public boolean onLoadMore(int page, int totalItemsCount) {
-                if(adapter.getCount() > maxSearchResults)
-                    return false;
+            public void onLoadMore(int page, int totalItemsCount) {
                 // Triggered only when new data needs to be appended to the list
-                // Add whatever code is needed to append new items to your AdapterView
-                customLoadDataFromApi(page - 1);
-                // or customLoadDataFromApi(totalItemsCount);
-                return true; // ONLY if more data is actually being loaded; false otherwise.
+                // Add whatever code is needed to append new items to the bottom of the list
+                customLoadDataFromApi(page - 1, false);
             }
         });
 
-        settings = new Settings();
-        gvResults.setOnItemClickListener(this::handleItemClick);
+        ItemClickSupport.addTo(rvArticles).setOnItemClickListener(
+                (recyclerView, position, v) -> {
+                    handleItemClick(position);
+                }
+        );
 
-        invalidateOptionsMenu();
-        setSupportActionBar(toolbar);
+    }
 
-        query = "news";
-        startSearch();
+    private void setupSwipeContainer()
+    {
+        // Setup refresh listener which triggers new data loading
+        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                // Your code to refresh the list here.
+                // Make sure you call swipeContainer.setRefreshing(false)
+                // once the network request has completed successfully.
+                adapter.clear();
+                customLoadDataFromApi(0, true);
 
+            }
+        });
+        // Configure the refreshing colors
+        swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
+                android.R.color.holo_green_light,
+                android.R.color.holo_orange_light,
+                android.R.color.holo_red_light);
     }
 
     private String BASE_URL = "https://api.nytimes.com/svc/search/v2/";
@@ -96,19 +139,51 @@ public class SearchActivity extends AppCompatActivity
             .build();
 
     public void startSearch() {
+
         adapter.clear();
-        customLoadDataFromApi(0);
+        customLoadDataFromApi(0, false);
     }
 
-    private int maxSearchResults = 999;
+    public boolean isOnline() {
+        Runtime runtime = Runtime.getRuntime();
+        try {
+            Process ipProcess = runtime.exec("/system/bin/ping -c 1 8.8.8.8");
+            int     exitValue = ipProcess.waitFor();
+            return (exitValue == 0);
+        } catch (IOException e)          { e.printStackTrace(); }
+        catch (InterruptedException e) { e.printStackTrace(); }
+        return false;
+    }
 
-    private void customLoadDataFromApi(int page) {
+    private Boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnectedOrConnecting();
+    }
+
+    private void customLoadDataFromApi(int page, boolean isSwipeRefreshed) {
 
         try {
-            if (query.isEmpty())
+            if (query.isEmpty()) {
+                swipeContainer.setRefreshing(false);
                 return;
+            }
+            if(!isNetworkAvailable())
+            {
+                Toast.makeText(this, "This device is not connected to a network", Toast.LENGTH_SHORT).show();
+                swipeContainer.setRefreshing(false);
+                return;
+            }
+            if(!isOnline())
+            {
+                Toast.makeText(this, "Please connect to the Internet", Toast.LENGTH_SHORT).show();
+                swipeContainer.setRefreshing(false);
+                return;
+            }
 
-            showProgressBar();
+            if(!isSwipeRefreshed)
+                showProgressBar();
 
             ServiceInterface apiService =
                     retrofit.create(ServiceInterface.class);
@@ -126,17 +201,25 @@ public class SearchActivity extends AppCompatActivity
                 public void onResponse(Call<SearchResult> call, Response<SearchResult> response) {
                     int statusCode = response.code();
                     searchResult = response.body();
-                    maxSearchResults = searchResult.getResponse().getMeta().getHits();
-                    adapter.addAll(searchResult.getResponse().getDocs());
-                    hideProgressBar();
+                    int docCount = docs.size();
+                    docs.addAll(searchResult.getResponse().getDocs());
+                    adapter.notifyItemRangeInserted(docCount, docs.size());
+
+                    if(isSwipeRefreshed)
+                        swipeContainer.setRefreshing(false);
+                    else
+                        hideProgressBar();
+
                 }
 
                 @Override
                 public void onFailure(Call<SearchResult> call, Throwable t) {
                     // Log error here since request failed
                     Log.e("search result", "Error!");
-                    maxSearchResults = 0;
-                    hideProgressBar();
+                    if(isSwipeRefreshed)
+                        swipeContainer.setRefreshing(false);
+                    else
+                        hideProgressBar();
                 }
             });
         }
@@ -144,11 +227,12 @@ public class SearchActivity extends AppCompatActivity
         {
             ex.printStackTrace();
             hideProgressBar();
+            swipeContainer.setRefreshing(false);
         }
     }
 
     //@OnItemClick(R.id.gvResults)
-    public void handleItemClick(AdapterView<?> adapterView, View view, int position, long l) {
+    public void handleItemClick(int position) {
 
         Doc doc = this.docs.get(position);
         Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
@@ -249,7 +333,8 @@ public class SearchActivity extends AppCompatActivity
     public void onFinishFilterSettingsFragment(Settings settings) {
 
         this.settings = settings;
-        customLoadDataFromApi(0);
+        adapter.clear();
+        customLoadDataFromApi(0, false);
     }
 }
 
