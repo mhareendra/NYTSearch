@@ -1,0 +1,29 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context=".Activities.MainActivity">
+    <item
+        android:id = "@+id/settings_option"
+        android:title="@string/settings_mainmenu_option"
+        android:icon="@android:drawable/ic_menu_preferences"
+        android:orderInCategory="200"
+        app:showAsAction="ifRoom"
+        />
+
+    <item android:id="@+id/action_search"
+        android:orderInCategory="5"
+        android:title="@string/search_mainmenu_option"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="ifRoom|collapseActionView"
+        app:actionViewClass="android.support.v7.widget.SearchView" />
+
+    <item
+        android:id="@+id/miActionProgress"
+        android:title="@string/loading_menu_item"
+        android:visible="false"
+        android:orderInCategory="100"
+        app:showAsAction="always"
+        app:actionLayout="@layout/action_view_progress" />
+
+
+</menu>

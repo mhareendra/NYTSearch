@@ -2,4 +2,17 @@
     <string name="app_name">NYTSearch</string>
     <string name="SearchButtonText">Search</string>
     <string name="hint">Enter search term</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="saveOption">Save</string>
+    <string name="deleteOption">Delete</string>
+    <string name="sort_order_tv">Sort Order</string>
+    <string name="begin_date_tv">Begin Date</string>
+    <string name="sports_cb_text">Sports</string>
+    <string name="fashion_amp_style_cb_text"><![CDATA[Fashion & Style]]></string>
+    <string name="arts_cb_text">Arts</string>
+    <string name="search_mainmenu_option">Search</string>
+    <string name="settings_mainmenu_option">Settings</string>
+    <string name="loading_menu_item">Loading...</string>
 </resources>

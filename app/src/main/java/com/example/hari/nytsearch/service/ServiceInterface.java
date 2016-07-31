@@ -1,4 +1,4 @@
-package com.example.hari.nytsearch.activity;
+package com.example.hari.nytsearch.service;
 
 import com.example.hari.nytsearch.model.SearchResult;
 
@@ -12,10 +12,12 @@ public interface ServiceInterface {
 
     @GET("articlesearch.json")
     Call<SearchResult> get(
+            @Query("begin_date") String beginDate,
+            @Query("sort") String sortOrder,
             @Query("api-key") String apiKey,
-            @Query("page") Integer page,
-            @Query("q") String query
-
+            @Query("q") String query,
+            @Query("fq") String newsDesk,
+            @Query("page") Integer page
     );
 
 //    @GET("users/{username}")

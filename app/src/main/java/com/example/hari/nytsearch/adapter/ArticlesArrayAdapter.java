@@ -42,7 +42,6 @@ public class ArticlesArrayAdapter extends ArrayAdapter<Doc> {
         super(context, android.R.layout.simple_list_item_1, searchResults);
     }
 
-
     private String thumbnailBaseUrl = "http://www.nytimes.com/";
 
     @Override

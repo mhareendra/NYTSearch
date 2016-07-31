@@ -10,7 +10,7 @@ public class Multimedium {
     private String url;
     private Integer height;
     private String subtype;
-    private Legacy legacy;
+    //private Legacy legacy;
     private String type;
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -86,23 +86,23 @@ public class Multimedium {
         this.subtype = subtype;
     }
 
-    /**
-     * 
-     * @return
-     *     The legacy
-     */
-    public Legacy getLegacy() {
-        return legacy;
-    }
-
-    /**
-     * 
-     * @param legacy
-     *     The legacy
-     */
-    public void setLegacy(Legacy legacy) {
-        this.legacy = legacy;
-    }
+//    /**
+//     *
+//     * @return
+//     *     The legacy
+//     */
+//    public Legacy getLegacy() {
+//        return legacy;
+//    }
+//
+//    /**
+//     *
+//     * @param legacy
+//     *     The legacy
+//     */
+//    public void setLegacy(Legacy legacy) {
+//        this.legacy = legacy;
+//    }
 
     /**
      * 
