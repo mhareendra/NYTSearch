@@ -37,13 +37,21 @@ Optional:
 
 Notes:
 
-Attempted Parceler library but could not get it to work on user defined classes and hence ended up not using it.
+Added animation effects (combination of SlideIn, Alpha In and ScaleIn) to the recycler view.
+
+Added Zoom-in effect on clicking an item in the search results and Zoom-out effect when exiting the webview activity.
+
 Added Swipe-to-refresh on search activity
+
 Added Progress bar indicator that is active when request is in progress
-Added animation effects to the recycler view and also on enterin and exiting the webview activity
+
 Added Card View to improve the appearance of items in the staggered Grid View
-Added a few additional filter options (news desk values)
+
+Added a few additional filter options (news desk values: Cars, education, books)
+
 Implemented support for rounded image corners using Glide but ended up not using it because of Card View UI
+
+Attempted Parceler library but could not get it to work on user defined classes and hence ended up not using it.
 
 
 Walkthrough of all user stories:
