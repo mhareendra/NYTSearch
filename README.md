@@ -3,7 +3,7 @@
 This is an Android demo application that lets users perform filter-enabled search operations for New York Times articles. Individual articles can also be viewed in an embedded web browser. 
 Time spent: 20 hours spent in total
 
-Completed user stories:
+## Completed user stories:
 
 Required:
 
@@ -35,7 +35,7 @@ Optional:
  * [X] Stretch: Leverage the popular GSON library to streamline the parsing of JSON data. (1 point)
  * [X] Stretch: Consume the New York Times API using the popular Retrofit networking library instead of Android Async HTTP. (3 points)
 
-Notes:
+## Notes:
 
 Added animation effects (combination of SlideIn, Alpha In and ScaleIn) to the recycler view.
 
@@ -54,7 +54,7 @@ Implemented support for rounded image corners using Glide but ended up not using
 Attempted Parceler library but could not get it to work on user defined classes and hence ended up not using it.
 
 
-Walkthrough of all user stories:
+## Walkthrough of all user stories:
 
 https://vimeo.com/177018509
 
