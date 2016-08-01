@@ -28,12 +28,15 @@ public class Settings {
     public boolean isSelectArts;
     public boolean isSelectFashion;
     public boolean isSelectSports;
+    public int spSortOrderSelectedIndex = 0;
+    public String beginDateDisplay;
 
     public String getBeginDate() {
         if(beginDate == null || beginDate.isEmpty())
             return getDefaultCompletionDate();
         if(beginDate.contains("/")) {
             try {
+                beginDateDisplay = beginDate;
                 String[] s = beginDate.split("/");
                 if(s.length == 3)
                     beginDate = String.format("%s%s%s", s[2], s[0], s[1]);
@@ -77,6 +80,7 @@ public class Settings {
             int year = calendar.get(Calendar.YEAR);
             int month = calendar.get(Calendar.MONTH) + 1;
             int day = calendar.get(Calendar.DAY_OF_MONTH);
+            beginDateDisplay = String.format(Locale.US, "%02d/%02d/%d", month, day, year );
             return String.format(Locale.US, "%02d%02d%d", year, month, day );
         }
         catch (Exception ex)

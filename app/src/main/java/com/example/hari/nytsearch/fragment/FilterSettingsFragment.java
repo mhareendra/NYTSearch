@@ -39,10 +39,12 @@ public class FilterSettingsFragment extends DialogFragment
     }
 
 
-    public static FilterSettingsFragment newInstance() {
+    private Settings settings;
+    public static FilterSettingsFragment newInstance(Settings setings) {
 
         FilterSettingsFragment frag = new FilterSettingsFragment();
         Bundle args = new Bundle();
+        frag.settings = setings;
         frag.setArguments(args);
         return frag;
     }
@@ -74,6 +76,12 @@ public class FilterSettingsFragment extends DialogFragment
         View view = inflater.inflate(R.layout.fragment_filter_settings,
                 container, false);
         unbinder = ButterKnife.bind(this, view);
+
+        cbSports.setChecked(settings.isSelectSports);
+        tvBeginDate.setText(settings.beginDateDisplay);
+        spSortOrder.setSelection(settings.spSortOrderSelectedIndex);
+        cbArts.setChecked(settings.isSelectArts);
+        cbFashion.setChecked(settings.isSelectFashion);
 
         // Inflate the layout for this fragment
         return view;
@@ -151,6 +159,7 @@ public class FilterSettingsFragment extends DialogFragment
 
             //int spSortOrderSelectedIndex = spSortOrder.getSelectedItemPosition();
             settings.sortOrder = spSortOrder.getSelectedItem().toString().toLowerCase();
+            settings.spSortOrderSelectedIndex = spSortOrder.getSelectedItemPosition();
 
             if(cbArts.isChecked()) {
                 settings.isSelectArts = cbArts.isChecked();

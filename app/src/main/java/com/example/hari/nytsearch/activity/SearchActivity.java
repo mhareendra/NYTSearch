@@ -10,15 +10,22 @@ import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.MenuItemCompat;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.SearchView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.support.v7.widget.Toolbar;
+import android.transition.Slide;
+import android.transition.TransitionInflater;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.OvershootInterpolator;
 import android.widget.ProgressBar;
 import android.widget.Toast;
 
@@ -26,6 +33,7 @@ import com.example.hari.nytsearch.R;
 import com.example.hari.nytsearch.adapter.ArticlesAdapter;
 import com.example.hari.nytsearch.fragment.FilterSettingsFragment;
 import com.example.hari.nytsearch.helper.ItemClickSupport;
+import com.example.hari.nytsearch.helper.SpacesItemDecoration;
 import com.example.hari.nytsearch.model.Doc;
 import com.example.hari.nytsearch.model.SearchResult;
 import com.example.hari.nytsearch.model.Settings;
@@ -36,6 +44,9 @@ import java.util.ArrayList;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import jp.wasabeef.recyclerview.adapters.AlphaInAnimationAdapter;
+import jp.wasabeef.recyclerview.adapters.ScaleInAnimationAdapter;
+import jp.wasabeef.recyclerview.adapters.SlideInBottomAnimationAdapter;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -78,10 +89,20 @@ public class SearchActivity extends AppCompatActivity
         query = getString(R.string.default_query);
         startSearch();
 
+        ActionBar bar = getSupportActionBar();
+        if (bar!=null) {
+            bar.setDisplayShowHomeEnabled(true);
+            bar.setIcon(R.mipmap.ic_launcher);
+            bar.setDisplayShowTitleEnabled(false);
+            bar.setHomeButtonEnabled(true);
+
+        }
+
+//        setupWindowAnimations();
+
     }
 
-    private void setupRvArticles()
-    {
+    private void setupRvArticles() {
         rvArticles.setAdapter(adapter);
 
         StaggeredGridLayoutManager gridLayoutManager =
@@ -100,25 +121,73 @@ public class SearchActivity extends AppCompatActivity
 
         ItemClickSupport.addTo(rvArticles).setOnItemClickListener(
                 (recyclerView, position, v) -> {
-                    handleItemClick(position);
+                    handleItemClick(position,v);
                 }
         );
 
+        SpacesItemDecoration decoration = new SpacesItemDecoration(20);
+        rvArticles.addItemDecoration(decoration);
+
+        setupGridAnimator(AnimationEvent.AddAll);
+
+    }
+
+    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+    private void setupWindowAnimations()
+    {
+        Slide slide = (Slide) TransitionInflater.from(this).inflateTransition(R.transition.activity_slide);
+        getWindow().setExitTransition(slide);
+    }
+
+    public enum AnimationEvent {Add, Delete, AddAll, DeleteAll}
+
+    private void setupGridAnimator(AnimationEvent event)
+    {
+        switch (event)
+        {
+            case Add:
+                case AddAll:
+                    SlideInBottomAnimationAdapter animator = new SlideInBottomAnimationAdapter(adapter);
+                animator.setDuration(1000);
+                animator.setFirstOnly(false);
+                animator.setInterpolator(new OvershootInterpolator(1f));
+
+                AlphaInAnimationAdapter alphaAnimator = new AlphaInAnimationAdapter(animator);
+                alphaAnimator.setFirstOnly(false);
+                alphaAnimator.setDuration(600);
+                rvArticles.setAdapter(new ScaleInAnimationAdapter(alphaAnimator));
+
+                break;
+
+            default:
+                SlideInBottomAnimationAdapter animator2 = new SlideInBottomAnimationAdapter(rvArticles.getAdapter());
+                animator2.setDuration(1000);
+                animator2.setFirstOnly(false);
+                animator2.setInterpolator(new OvershootInterpolator(1f));
+
+                AlphaInAnimationAdapter alphaAnimator1 = new AlphaInAnimationAdapter(animator2);
+                alphaAnimator1.setFirstOnly(false);
+                alphaAnimator1.setDuration(600);
+                rvArticles.setAdapter(alphaAnimator1);
+                break;
+        }
     }
 
     private void setupSwipeContainer()
     {
         // Setup refresh listener which triggers new data loading
-        swipeContainer.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-            @Override
-            public void onRefresh() {
-                // Your code to refresh the list here.
-                // Make sure you call swipeContainer.setRefreshing(false)
-                // once the network request has completed successfully.
-                adapter.clear();
-                customLoadDataFromApi(0, true);
+        swipeContainer.setOnRefreshListener(() -> {
+            // Your code to refresh the list here.
+            // Make sure you call swipeContainer.setRefreshing(false)
+            // once the network request has completed successfully.
 
-            }
+
+            int docCount = docs.size();
+            adapter.clear();
+            adapter.notifyItemRangeRemoved(0, docCount);
+
+            customLoadDataFromApi(0, true);
+
         });
         // Configure the refreshing colors
         swipeContainer.setColorSchemeResources(android.R.color.holo_blue_bright,
@@ -185,6 +254,7 @@ public class SearchActivity extends AppCompatActivity
             if(!isSwipeRefreshed)
                 showProgressBar();
 
+
             ServiceInterface apiService =
                     retrofit.create(ServiceInterface.class);
 
@@ -203,6 +273,7 @@ public class SearchActivity extends AppCompatActivity
                     searchResult = response.body();
                     int docCount = docs.size();
                     docs.addAll(searchResult.getResponse().getDocs());
+
                     adapter.notifyItemRangeInserted(docCount, docs.size());
 
                     if(isSwipeRefreshed)
@@ -231,8 +302,14 @@ public class SearchActivity extends AppCompatActivity
         }
     }
 
+
     //@OnItemClick(R.id.gvResults)
-    public void handleItemClick(int position) {
+    public void handleItemClick(int position, View v) {
+
+        Animation a = AnimationUtils.loadAnimation(getApplicationContext(),
+                R.anim.zoom_in);
+
+        v.startAnimation(a);
 
         Doc doc = this.docs.get(position);
         Intent intent = new Intent(getApplicationContext(), ArticleActivity.class);
@@ -272,11 +349,22 @@ public class SearchActivity extends AppCompatActivity
                 return false;
             }
         });
+
+        MenuItemCompat.setOnActionExpandListener(searchItem, new MenuItemCompat.OnActionExpandListener() {
+            @Override
+            public boolean onMenuItemActionExpand(MenuItem item) {
+                return true;
+            }
+
+            @Override
+            public boolean onMenuItemActionCollapse(MenuItem item) {
+                query = getString(R.string.default_query);
+                startSearch();
+                return true;
+            }
+        });
+
         return super.onCreateOptionsMenu(menu);
-
-
-
-
         //return true;
     }
 
@@ -322,7 +410,7 @@ public class SearchActivity extends AppCompatActivity
     {
         FragmentManager fm = getSupportFragmentManager();
         FilterSettingsFragment filterSettingsFragment
-                = FilterSettingsFragment.newInstance();
+                = FilterSettingsFragment.newInstance(settings);
         filterSettingsFragment.show(fm, "fragment_filter_settings");
 
     }

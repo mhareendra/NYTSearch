@@ -19,7 +19,6 @@ import java.util.List;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
-import jp.wasabeef.glide.transformations.RoundedCornersTransformation;
 
 /**
  * Created by Hari on 7/31/2016.
@@ -45,6 +44,9 @@ extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         @BindView(R.id.tvTitle)
         TextView tvTitle;
+
+        @BindView(R.id.tvPubDateTI)
+        TextView tvPubDate;
 
         public ArticleViewHolder(View view)
         {
@@ -78,6 +80,9 @@ extends RecyclerView.Adapter<RecyclerView.ViewHolder>
 
         @BindView(R.id.tvSnippet)
         TextView tvSnippet;
+
+        @BindView(R.id.tvPubDate)
+        TextView tvPubDate;
 
         public TextViewHolder(View view)
         {
@@ -160,7 +165,6 @@ extends RecyclerView.Adapter<RecyclerView.ViewHolder>
     @Override
     public void onBindViewHolder(ViewHolder holder, int position) {
 
-
         switch (holder.getItemViewType())
         {
             case TEXT_IMAGE:
@@ -197,6 +201,17 @@ extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         if(snippet==null || snippet.isEmpty())
             snippet = doc.getSource();
         holder.tvSnippet.setText(snippet);
+
+        String pubDate = doc.getPubDate();
+        if(pubDate!=null && !pubDate.isEmpty())
+        {
+            pubDate = pubDate.split("T")[0];
+            String year = pubDate.split("-")[0];
+            String month = pubDate.split("-")[1].split("-")[0];
+            String day = pubDate.split("-")[2];
+            holder.tvPubDate.setText(String.format("%s/%s/%s", month, day, year));
+        }
+
     }
 
     private void configureArticleViewHolder(ArticleViewHolder holder, int position)
@@ -227,11 +242,18 @@ extends RecyclerView.Adapter<RecyclerView.ViewHolder>
         if(mmList.size() > 0) {
             Glide.with(getContext())
                     .load(thumbnailBaseUrl + url)
-                    .bitmapTransform(new RoundedCornersTransformation(context, 10, 10))
                     .into(holder.ivImage);
         }
 
-
+        String pubDate = doc.getPubDate();
+        if(pubDate!=null && !pubDate.isEmpty())
+        {
+            pubDate = pubDate.split("T")[0];
+            String year = pubDate.split("-")[0];
+            String month = pubDate.split("-")[1].split("-")[0];
+            String day = pubDate.split("-")[2];
+            holder.tvPubDate.setText(String.format("%s/%s/%s", month, day, year));
+        }
     }
 
     private String thumbnailBaseUrl = "http://www.nytimes.com/";
