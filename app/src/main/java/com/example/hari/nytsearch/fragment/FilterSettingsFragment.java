@@ -64,8 +64,19 @@ public class FilterSettingsFragment extends DialogFragment
     @BindView(R.id.cbSports)
     CheckBox cbSports;
 
+    @BindView(R.id.cbBooks)
+    CheckBox cbBooks;
+
+    @BindView(R.id.cbCars)
+    CheckBox cbCars;
+
+    @BindView(R.id.cbEducation)
+    CheckBox cbEducation;
+
     @BindView(R.id.toolbar)
     Toolbar toolbar;
+
+
 
     private Unbinder unbinder;
 
@@ -82,6 +93,9 @@ public class FilterSettingsFragment extends DialogFragment
         spSortOrder.setSelection(settings.spSortOrderSelectedIndex);
         cbArts.setChecked(settings.isSelectArts);
         cbFashion.setChecked(settings.isSelectFashion);
+        cbBooks.setChecked(settings.isSelectedBooks);
+        cbCars.setChecked(settings.isSelectedCars);
+        cbEducation.setChecked(settings.isSelectedEducation);
 
         // Inflate the layout for this fragment
         return view;
@@ -174,6 +188,21 @@ public class FilterSettingsFragment extends DialogFragment
             if(cbSports.isChecked()) {
                 settings.isSelectSports = cbSports.isChecked();
                 settings.newsDeskValues.add(cbSports.getText().toString());
+            }
+
+            if(cbCars.isChecked()) {
+                settings.isSelectedCars = cbCars.isChecked();
+                settings.newsDeskValues.add(cbCars.getText().toString());
+            }
+
+            if(cbBooks.isChecked()) {
+                settings.isSelectedBooks = cbBooks.isChecked();
+                settings.newsDeskValues.add(cbBooks.getText().toString());
+            }
+
+            if(cbEducation.isChecked()) {
+                settings.isSelectedEducation = cbEducation.isChecked();
+                settings.newsDeskValues.add(cbEducation.getText().toString());
             }
 
             FilterSettingsFragmentListener listener =

@@ -28,6 +28,10 @@ public class Settings {
     public boolean isSelectArts;
     public boolean isSelectFashion;
     public boolean isSelectSports;
+    public boolean isSelectedBooks;
+    public boolean isSelectedCars;
+    public boolean isSelectedEducation;
+
     public int spSortOrderSelectedIndex = 0;
     public String beginDateDisplay;
 
