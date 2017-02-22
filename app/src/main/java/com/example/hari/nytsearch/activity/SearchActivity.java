@@ -197,7 +197,7 @@ public class SearchActivity extends AppCompatActivity
     }
 
     private String BASE_URL = "https://api.nytimes.com/svc/search/v2/";
-    private String apiKey = "28e4cfed61e54e009959cdaeaa045680";
+    private String apiKey = "0f01920406814c448599dbab2eee1bd2";
 
     private String query = "";
 
@@ -271,10 +271,19 @@ public class SearchActivity extends AppCompatActivity
                 public void onResponse(Call<SearchResult> call, Response<SearchResult> response) {
                     int statusCode = response.code();
                     searchResult = response.body();
-                    int docCount = docs.size();
-                    docs.addAll(searchResult.getResponse().getDocs());
 
-                    adapter.notifyItemRangeInserted(docCount, docs.size());
+                    if(searchResult == null) {
+                        if(isSwipeRefreshed)
+                            swipeContainer.setRefreshing(false);
+                        else
+                            hideProgressBar();
+                        return;
+                    }
+                        int docCount = docs.size();
+                        docs.addAll(searchResult.getResponse().getDocs());
+
+                        adapter.notifyItemRangeInserted(docCount, docs.size());
+
 
                     if(isSwipeRefreshed)
                         swipeContainer.setRefreshing(false);
